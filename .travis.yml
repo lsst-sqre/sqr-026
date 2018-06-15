@@ -4,6 +4,9 @@ matrix:
   include:
     - python: "3.5"
       env: LTD_MASON_BUILD=true
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y pandoc
 install:
   - pip install -r requirements.txt
   - pip install "ltd-mason>=0.2,<0.3"
@@ -15,5 +18,6 @@ env:
   global:
     - LTD_MASON_BUILD=false  # disable builds in regular text matrix
     - LTD_MASON_PRODUCT="sqr-026"
-    # Add AWS and LTD Keeper credentials as encrypted secrets here
-
+    # AWS and LTD Keeper credentials as encrypted secrets here
+    - secure: "gUG1Do1EiJTXWNbOETmgcQr1ZWEvD264BU8I/xM4h0aq7yWirPsbXEmPEDfW5j/hFip894CbmBmGP2DkszYoklhplOpJOiNcLqnBxuCYV9lb6V52/ycQPQ2qLnQUihPuP7GngQeQmbnIVa9vbaLZ32sRthfkoS+i34S3I8LdyFkAkz4ZbGkf6vbJhfp1LXakA7DY2+CQXAfdpTIwJyWQVDPFtwlo5cP7FnX1OnRhJ3Bc+GASwDJkqcevThhYQgsXfxeY5xQnR4cb+zmzD4pdvVvNpdXR+5NOlfGuZLwF3ULwZMm7WdifpLAMpHq4Ep2mCDolrIzcmr02zlFCG9ABy0hw+ZHTGMR+vc/yiN7141l7At0hqAOBRChoYv+x4jTxr42r6Izz+kgI8xluCF6fT+ia/NmZYitgLqc3gRag9ioEVRl8siIFkUoBK8inRoHjLxPY6UBe2us2jtoyojNPEqpjJ6bSu1u990CzJTKTle9pOew2ktiKhkw289G+GowbZ3Pk6px8VO2vy2Q6QKSuXP7gP7HtJH0Bu2n9YMUXa4n0cYq0EmOumr/nwb+tMgelqwc/GiLhf6fxs0n6LwL2V2CnsIY8Q/ss+m+Vw1lzpWmS9Skcy+pfxUhLhIXTzIE9uJcn9TYbpLKk5vPR6Z/TVXg7Ggsi7cPHecQzCw5HZk0="
+    - secure: "fl9s3wELFLE1jctjDCF2//YyydKbeRAAEEfCbkxrZg/BzkAO53HejTLvVPwjTFfdbFUBo12TZH6lmIM8eutRTbvMmzsSFrB4iyI/vdGnOQiLSQnBggPKyytTqrifzNh8AOkNiby+MPN/ufcHM4HdvF/3UW0tWFLjXeE/+pm2Jbwlw9KQPccX1gIiZP9TYmI0maC7hYVtnoibN/MSq0Yzwx4XfvS0+mTG/PQr9S8tnHTzx5csuMaYkiuKmHxV5KyGs96E0i0RTqvDy7/BTT/mKukaVYI05LoXrpUm1mTpeDvZGMvHjtF7/6ykIu+q/yyGr91fsRwFkzzpYHi+O2Fl9Lxu7roPEbD06fWI3qUsI4rsCIkLi5rz04XIb9vCHC0nlFBxqNGKC3cbRGoBc/BJ+2KUHv5iMK5NQQEsIH8kmQHrsRjaRZ1GQgDFA7NMckvbN8sjfknHCjT0ar3eqiOh6N8wUIl86pi/vYBejKEKRp8qkpK/6jQjcXmKsGmVvdyT7F5D/WDePVTLNs9fQee1+gNrfqc8V2J/LPtdhThUAOwqwzR4BTaAG+6Pl+Kt9kyujCbV94na2EsQLLZsGI3qENsuKGQWFsGDGXVecu8KVwhRZR8ixyshiWFhyFRcGV9x1c2JF4235GhUCbnBBmsmQVbjdEm+T4SCNEbSaSbb1as="
