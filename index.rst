@@ -43,137 +43,97 @@
 Introduction
 ============
 
-The rapid cadence and scale of the LSST observing program requires that each Visit is scheduled shortly before it is observed to make optimal use of conditions that vary with time like observing conditions, observatory and telescode parameters, survey completion, etc. That requires automated feedback from the *Data Management System (DMS)* to the *Observatory Control System (OCS)* to predict the next observation, and to determine if a given Visit needs be scheduled for re-observation. It also requires automated but human-readable feedback to monitor data quality, in the form of near-realtime dashboards for observers and end-of-night reports for DM staff.
+In this technote we describe how SQuaRE infrastructure will be used to generate the Data Management System (DMS) end-of-night report described in the DMSR.
 
-During observations, the *Prompt Processing* (see section 3 in `LDM-151`_) will perform a Single Frame Processing in near-realtime, from which data quality metrics can be derived for each CCD and Visit.
+We describe how the existing toolchain developed by LSST DM/SQuaRE will be used to generate the Data Management System (DMS) end-of-night report specified in the DMSR (DMS-REQ-0097)
 
-From the *Data Management – OCS Software Communication Interface* **OCS-DM-COM-ICD-0017** (see section 3.1 in `LSE-72`_ ) the DMS shall use the OCS Service Abstraction Layer (SAL) to communicate with the OCS. This communication interface is defined in the *System Communication Protocol Interface* `LSE-70`_ which contains the requirements to *publish* data quality metrics to OCS as telemetry and also to *subscribe* to telemetry events from the OCS.
+and discuss the adoption of this toolchain as the common reporting infrastructure to be shared accross the LSST subsystems, as requested in `LCR-1203`_.
 
-.. note::
-  I don't understand SAL and DDS yet, can this be configured between NCSA and the Summit?  not sure about OCS-DMS telemetry, is this equivalent to querying the EFD (in LSE-72 there is specification for a query interface to EFD) or will DMS subscribe to OCS events?. My understanding is that for near-realtime telemetry we cannot use the T-EFD.
-
-
-In particular, **OCS-DM-COM-ICD-0019** (see section 3.1.2 in `LSE-72`_) will provide a complete list of events and telemetry required by the OCS from the DMS.
-
-From **OCS-DM-COM-ICD-0021** (see section 3.1.2.2 in `LSE-72`_) the data quality metrics will be used by the OCS to determine if the observation meets the *scheduler criteria*. In this sense, the imediate feedback from the DMS to the OCS is important as it impacts the short term scheduling.
-
-In addition to the the data quality metrics, the DMS should be able to compute and store a passed/failed data quality flag to determine if a given Visit needs to be scheduled for re-observation.
-
-.. note::
-  `LSE-61` does not have an explicit requirement for that.  Which data quality critera will be used to define the passed/failed flag? Other Surveys like DES use a combination of the sky brightness estimates, PSF FWHM and atmosperic transparency as a single data quality metric called *effective exposure time* that is used for this purpose.
-
-While the details of the OCS-DMS interface are not completely defined, we assume that data quality metrics for each CCD and Visit will be persisted in the "OCS database" (see section 3.1.2 in `LDM-151`_). We call that the Prompt Quality Control (QC) database, from which telemetry information to OCS can be generated.
-
-A component like the Prompt QC database is also required for generating a human-readable near-realtime dashboard and a Data Quality Report.
-
-
-The minimum content for the Prompt Data Quality report is specified in  **DMS-REQ-0097** (see section 1.3.14 in `LSE-61`_).
+**DMS-REQ-0097** (see section 1.3.14 in `LSE-61`_) specifies the minimum content for the DMS end-of-night report:
 
 **Specification:** *The DMS shall produce a Level 1 Data Quality Report that contains indicators of data quality that result from running the DMS pipelines, including at least: Photometric zero point vs. time for each utilized filter; Sky brightness vs. time for each utilized filter; seeing vs. time for each utilized filter; PSF parameters vs. time for each utilized filter; detection efficiency for point sources vs. mag for each utilized filter.*
 
-**Discussion:** *The seeing report is intended as a broad-brush measure of image quality. The PSF parameters provide more detail, as they include asymmetries and field location dependence.*
+Also, from **DMS-REQ-0096** (see section 2.2.10 in `LSE-61`_) the Prompt Data Quality Report must be generated less than 4h after the end of the nigthly Prompt Processing in order to evaluate *whether changes to hardware, software, or procedures are needed for the following night’s observing.*
 
-Also from **DMS-REQ-0096** (see section 2.2.10 in `LSE-61`_) the Prompt Data Quality Report must be generated in less than 4h after the end of the nigthly Prompt Processing in order to evaluate *whether changes to hardware, software, or procedures are needed for the following night’s observing.*
+During observations, the *Prompt Processing* pipeline (see section 3 in `LDM-151`_) will perform Single Frame Processing from which the data quality metrics specified in **DMS-REQ-0097** can be derived for each CCD and Visit. However, a more complete end-of-night report will require correlation of those metrics with the state of the instrument, observing conditions, observatory parameters obtained from the DM-EFD (see `DMTN-050`_), and probably with observer comments obtained from the observatory electronic log system. As a reference, see the `Dark Energy Survey Night Summary`_ reports.
 
-.. note::
-  Should we consider DMS-REQ-0099 - Level 1 Performance Report Definition and DMS-REQ-0101 - Level 1 Calibration Report Definition here?
+Figure 1 presents an overview diagram of the DMS end-of-night report components, mapped to existing tools developed by LSST DM/SQuaRE. The LSST DM/SQuaRE toolchain is described in more details in the following sections.
 
-The data quality metrics specified in **DMS-REQ-0097** can be derived from the *Single Frame processing* alone. However, a richer report will need to correlate those metrics with the state of the instrument, observing conditions, observatory parameters obtained from the Transformed EFD (see `DMTN-050`_). Also, we'll need to correlate that information with observer comments obtained from the observatory electronic log system.
-
-As a reference, see the `Dark Energy Survey Night Summary`_ report.
-
-In this technote we evaluate existing DM tools, and discuss the the need of developing new tools for:
-
-  - Collecting the data quality metrics from the *Single Frame Processing* pipeline;
-  - Storing the data quality metrics in the Prompt QC database;
-  - Publishing data quality metrics to the OCS;
-  - Monitoring data quality metrics in near-realtime dashboards;
-  - Accessing the Prompt QC and EFD databases;
-  - Implementing and running the Prompt Data Quality Report;
-  - Publishing the Prompt Data Quality Reports.
-
-Figure 1 presents an overview diagram of the Prompt QC components described in more detail in the next sections.
-
-.. figure:: /_static/qc_components.png
+.. figure:: /_static/report_components.png
   :name: Prompt Quality Control components.
 
-In the Appendix A we list the data quality metrics and parameters used by the Prompt QC software.
+Finally, in Appendix A we present an initial list of the data quality metrics and parameters needed by the DMS end-of-night report.
 
+Collection of data quality metrics with `lsst.verify`
+=====================================================
 
-
-Collecting data quality metrics
-===============================
-
-The Single Frame Processing Pipeline is responsible for reducing raw
+The Single Frame Processing pipeline is responsible for the reduction of raw
 or camera-corrected image data to calibrated exposures, the detection and measurement of
 Sources, the characterization of the point-spread-function (PSF), and the generation of an astrometric solution for an image.
 
-Quality metrics are collected instrumenting these tasks with the LSST Verification framework or `lsst.verify` (see `SQR-019`_).
+Data quality metrics can be collected for each CCD during normal processing of a visit (eg. zeropoints) or by an afterburner task that creates an appropriate dataset (e.g. detection efficiency). Normal processing tasks or QA-specific afterburner tasks can be instrumented by the LSST Verification Framework used to define and collect measurements of those metrics as demonstrated in `SQR-019`_.
 
-Currently `lsst.verify` is being used to define and collect Key Performance Metrics derived from the LSST Science Requirements Document (`LPM-17`_).
+Currently `lsst.verify` is being used to measure Key Performance Metrics derived from the LSST Science Requirements Document (`LPM-17`_) but it is generic and will be used to publish ad hoc metrics.
+
+Metrics measured through `lsst.verify` can be uploaded to the LSST SQuaSH infrastructure for curation and display. 
+
+Storing data quality metrics with SQuaSH
+========================================
+
+`SQuaSH`_ is a metric store and monitoring system. Metrics are uploaded to SQuaSH using the `lsst.verify` framework. These metrics and their measured values are stored and tracked, making it possible to monitor regressions via a dahsboard interface or through alerts, including Slack notifications.
+
+SQuaSH has a microservice architecture that makes it easier to reuse some of its components for the DMS end-of-night reports. Here we decribe the use of the SQuaSH database for storing the data quality metrics and its RESTful API as a programatic interface to access the results.
+
+The `Bokeh_` plotting library is the data visualization technology used in `SQuaSH_`. We plan to use it for the end-of-night reports for creating rich and interactive visualizations as it integrates very well with the notebook environment. See also `SQR-022`_ for an example of a custom chart implemented in Bokeh.
 
 
-Storing data quality metrics
-============================
+Implementing the end-of-night reports as Jupyter notebooks
+==========================================================
 
-Metric values computed by pipeline tasks and collected by `lsst.verify` will be uploaded to the Prompt QC database through a RESTful API.
+We intend to implement the end-of-night reports as Jupyter notebooks using the notebook aspect of the `LSST Science Platform`_. The nootbook will contain the code necessary to access the results from programatic APIs, the visualization code and the text narrative in a single place.
 
+For data visualization, we will use the Bokeh plotting library already extensively used in SQuaSH. This library integrates well in the notebook environment and with the publication infrastructure as described below.
 
-Publishing data quality metrics to the OCS
-==========================================
+The notebooks can be executed on demand or on a schedule (e.g. via a cronjob) and the result will be published as a static page using the LSST the Docs, the same infrastructure used to publish this technote. This will allow users to consume it as a document report if they do not need the interactive analytical capabilities offered by SQuaSH and the notebook framework. 
 
-Data quality metrics will be published to the OCS through telemetry events using SAL.
+Correlating with data in the DM-EFD
+==================================
 
-.. note::
-  While LSE-72 proposes SAL for the DMS-OCS interface, I don't know if that is possible between NCSA and the Summit.  See also LDM-148 about the "Telemetry Gateway" which proposes that RabbitMQ is used to transfer status and quality metrics to the gateway over the international network.
+The DMS end-of-night report will need access to the DM-EFD to correlate the data quality metrics with EFD-derived data such as observing conditions, state of the instrument, observatory parameters etc.
 
-Monitoring quality metrics in near-realtime dashboards
-======================================================
+The DM-EFD will have a programatic interface through the DAX system.  These interfaces will be accessible from the LSP environment.
 
-SQuaSH like dashboards can be used to visualize the data quality metrics enabling *remote observing* in near-realtime.
+Using LSST the Docs as the publication infrastructure
+=====================================================
 
-Prompt Data Quality Reports
-===========================
+In `SQR-019`_ we demonstrate how a Jupyter (python) notebook can be used as a source to a published document. It is also possible to have interactive plots in the static generated technotes using appropriate sphinx extensions as demonstrated in `SQR-019`_.
 
-Acessing the QC and EFD databases
----------------------------------
-Correlating data quality metrics with observing conditions, with the state of the instrument, observing conditions, observatory parameters etc.
+Conclusions
+===========
 
-Implementation
---------------
-The Data Quality Report will be implemented as jinja templates that will produce rst. It does not require much processing since the information is pre-computed and accessible from the Prompt QC REST API and the EFD.
+This technote summarizes LSST DM SQuaRE’s toolchain and demonstrates its potential use to generate the DMS end-of-night report in particular, and more generally as a common reporting infrastructure to be shared accross the LSST subsystems. We describe the current tools showing examples of their use and integration. We suggest using `lsst.verify` to define and collect measurements of ad hoc metrics; SQuaSH as the metric store; the notebook aspect of the LSP as the development environment for implementing the reports powered by programatic APIs for accessing SQuaSH and the DM-EFD databases; and finally using the LSST the Docs infrastructure to produce the static reports.
 
-Publication
------------
-The publication is done automatically using the LTD infrastructure to generate static pages from the rst documents generated by the jinja templates.
+Appendix A - DMS end-of-night report: data quality metrics and parameters to store
+==================================================================================
 
-Appendix A - Data quality metrics and parameters to store
-=========================================================
-
-Here we list the data quality metrics and parameters that we should store for each LSST Visit for the Prompt QC purpose.
-
-The data quality metrics measured by the Prompt Quality Control software for each individual CCD for each filter. These metrics are also aggregated at the Visit level.
+DMS-REQ-0097 makes reference to data quality metrics from the Single Frame Processing pipeline for each individual CCD in a Visit and for each filter. Calculating these values is the responsibility of the Science Pipelines team. Using the SQuaSH metric store, these metrics can also be aggregated at the Visit level.
 
   - PSF FWHM
   - PSF Ellipticiy
   - Sky brightness
   - Zeropoint
 
+A number of relevant data quality parameters can be obtained from the DM-EFD:
 
-The data quality parameters obtained from the EFD telemetry are:
-
-  - Datetime (UTC): date and time in UTC when the Visit acquisition started.
+  - Start time (UTC): date and time in UTC when the Visit acquisition started.
   - Visit ID: unique identifier of the Visit.
   - RA, Dec: Telescope pointing.
-  - Airmass: Even though it can be calculated from RA, Dec it is useful to store Airmass since it determines the expected atmospheric contribution.
+  - Airmass: Even though it can be calculated from RA, Dec it is useful to store Airmass since it determines the expected atmospheric contribution to the image quality.
   - Filter: One of the five LSST observing filters, ugrizy.
   - Focus: The donut estimate of focus error for the Visit.
   - Guider DeltaRA, DeltaDec: Guider displacements for TCS correction
   - DIMM seeing: seeing determined by the observatory
-  - Wind Speed
-
-
-
+  - Wind vector: anamometer data from site weather stations
 
 
 References
@@ -181,12 +141,13 @@ References
 
 .. target-notes::
 
-.. _`LDM-151`: https://docushare.lsstcorp.org/docushare/dsweb/Get/LDM-151
-.. _`LSE-72`: https://docushare.lsst.org/docushare/dsweb/Get/LSE-72
-.. _`LSE-70`: https://docushare.lsstcorp.org/docushare/dsweb/Get/LSE-70
-.. _`LDM-148`: https://docushare.lsstcorp.org/docushare/dsweb/Get/LDM-148
 .. _`LSE-61`: https://docushare.lsstcorp.org/docushare/dsweb/Get/LSE-61
+.. _`LDM-151`: https://docushare.lsstcorp.org/docushare/dsweb/Get/LDM-151
 .. _`DMTN-050`: https://dmtn-050.lsst.io
 .. _`Dark Energy Survey Night Summary`: http://des-ops.fnal.gov:8080/nightsum
-.. _`SQR-019`: https://sqr-019.lsst... important::
+.. _`LCR-1203`: https://project.lsst.org/groups/ccb/node/2174
+.. _`LSST Science Platform`: https://nb.lsst.io/
+.. _`SQR-019`: https://sqr-019.lsst.io
 .. _`LPM-17`: https://docushare.lsstcorp.org/docushare/dsweb/Get/LPM-17
+.. _`SQR-009`: https://sqr-009.lsst.io
+..
