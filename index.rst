@@ -43,68 +43,42 @@
 Introduction
 ============
 
-The rapid cadence and scale of the LSST observing program requires that each Visit is scheduled shortly before it is observed to make optimal use of conditions that vary with time like observing conditions, observatory and telescode parameters, survey completion, etc. That requires automated feedback from the *Data Management System (DMS)* to the *Observatory Control System (OCS)* to predict the next observation, and to determine if a given Visit needs be scheduled for re-observation. It also requires automated but human-readable feedback to monitor data quality, in the form of near-realtime dashboards for observers and end-of-night reports for DM staff.
+The rapid cadence and scale of the LSST observing program requires that each visit is scheduled shortly before it is observed to make optimal use of conditions that vary with time like observing conditions, observatory and telescope parameters, survey completion, etc. That requires automated data quality feedback from the *Data Management System (DMS)/Prompt Quality Control* to the *Observatory Control System (OCS)/Scheduler*	to	assess	*whether	visits	acquired	should	be	scored	as	successful	and	to	assess	the	general	observing	quality	– e.g.,	weather	and	seeing	– across	the	sky*. It also requires automated but human-readable feedback to monitor data quality, in the form of near-realtime dashboards for observers and end-of-night reports for DM staff.
 
-During observations, the *Prompt Processing* (see section 3 in `LDM-151`_) will perform a Single Frame Processing in near-realtime, from which data quality metrics can be derived for each CCD and Visit.
+During observations, the *Prompt Processing* (see section 3 in `LDM-151`_) will perform a Single Frame Processing, from which data quality metrics can be derived for each CCD in a visit for each visit.
 
-From the *Data Management – OCS Software Communication Interface* **OCS-DM-COM-ICD-0017** (see section 3.1 in `LSE-72`_ ) the DMS shall use the OCS Service Abstraction Layer (SAL) to communicate with the OCS. This communication interface is defined in the *System Communication Protocol Interface* `LSE-70`_ which contains the requirements to *publish* data quality metrics to OCS as telemetry and also to *subscribe* to telemetry events from the OCS.
+Data quality metrics will be published to the OCS/Scheduler throught the Telemetry Gateway at the Base, as defined in `LDM-148`_, which will then convert the messages into telemetry for the OCS Service Abstraction Layer (SAL) as specified by **OCS-DM-COM-ICD-0017** in `LSE-72`_.
 
-.. note::
-  I don't understand SAL and DDS yet, can this be configured between NCSA and the Summit?  not sure about OCS-DMS telemetry, is this equivalent to querying the EFD (in LSE-72 there is specification for a query interface to EFD) or will DMS subscribe to OCS events?. My understanding is that for near-realtime telemetry we cannot use the T-EFD.
+In particular, **OCS-DM-COM-ICD-0019** provides a minimum set	of	events	and	telemetry	to	be	published to the OCS.
 
+From **OCS-DM-COM-ICD-0021** the imediate data quality feedback to the OCS/Scheduler is important as it impacts the short term scheduling.
 
-In particular, **OCS-DM-COM-ICD-0019** (see section 3.1.2 in `LSE-72`_) will provide a complete list of events and telemetry required by the OCS from the DMS.
-
-From **OCS-DM-COM-ICD-0021** (see section 3.1.2.2 in `LSE-72`_) the data quality metrics will be used by the OCS to determine if the observation meets the *scheduler criteria*. In this sense, the imediate feedback from the DMS to the OCS is important as it impacts the short term scheduling.
-
-In addition to the the data quality metrics, the DMS should be able to compute and store a passed/failed data quality flag to determine if a given Visit needs to be scheduled for re-observation.
+While the detailed implementation of the Telemetry Gateway is not yet defined, we assume that data quality metrics, with a granularity level suitable for the OCS/Scheduler, will be published and also persited in the EFD (see **OCS-DM-COM-ICD-0020**).
 
 .. note::
-  `LSE-61` does not have an explicit requirement for that.  Which data quality critera will be used to define the passed/failed flag? Other Surveys like DES use a combination of the sky brightness estimates, PSF FWHM and atmosperic transparency as a single data quality metric called *effective exposure time* that is used for this purpose.
-
-While the details of the OCS-DMS interface are not completely defined, we assume that data quality metrics for each CCD and Visit will be persisted in the "OCS database" (see section 3.1.2 in `LDM-151`_). We call that the Prompt Quality Control (QC) database, from which telemetry information to OCS can be generated.
-
-A component like the Prompt QC database is also required for generating a human-readable near-realtime dashboard and a Data Quality Report.
-
-
-The minimum content for the Prompt Data Quality report is specified in  **DMS-REQ-0097** (see section 1.3.14 in `LSE-61`_).
-
-**Specification:** *The DMS shall produce a Level 1 Data Quality Report that contains indicators of data quality that result from running the DMS pipelines, including at least: Photometric zero point vs. time for each utilized filter; Sky brightness vs. time for each utilized filter; seeing vs. time for each utilized filter; PSF parameters vs. time for each utilized filter; detection efficiency for point sources vs. mag for each utilized filter.*
-
-**Discussion:** *The seeing report is intended as a broad-brush measure of image quality. The PSF parameters provide more detail, as they include asymmetries and field location dependence.*
-
-Also from **DMS-REQ-0096** (see section 2.2.10 in `LSE-61`_) the Prompt Data Quality Report must be generated in less than 4h after the end of the nigthly Prompt Processing in order to evaluate *whether changes to hardware, software, or procedures are needed for the following night’s observing.*
+  We need a requirement that specifies the frequency of the data quality feedback to OCS/Scheduler, as it impacts the Prompt Processing pipeline design and the maximum time the Scheduler will wait for that information before fallback.
 
 .. note::
-  Should we consider DMS-REQ-0099 - Level 1 Performance Report Definition and DMS-REQ-0101 - Level 1 Calibration Report Definition here?
+  The current plan is that DMS *will not* publish to the OCS/Scheduler a pass/fail data quality flag to determine if a visit needs to be scheduled for reobservation.
 
-The data quality metrics specified in **DMS-REQ-0097** can be derived from the *Single Frame processing* alone. However, a richer report will need to correlate those metrics with the state of the instrument, observing conditions, observatory parameters obtained from the Transformed EFD (see `DMTN-050`_). Also, we'll need to correlate that information with observer comments obtained from the observatory electronic log system.
+The Prompt Quality Control software will run at NCSA and will require its own database. The Prompt QC database will be connected to data quality dashboards for near-realtime moniritoring, available to the observers. The Prompt QC database will store the data quality metrics for each processed CCD in a visit for each visit. Additional parameters like observing conditions, observatory and telescode parameters will be obtained from the image header and stored in the Prompt QC database (see Appendix A). The image header will be the main mechanism for OCS-DMS communication in near-realtime.
 
-As a reference, see the `Dark Energy Survey Night Summary`_ report.
+The Prompt QC database should be exposed to the DAX services at the Data Access Centers as it contains useful information to science users.
 
-In this technote we evaluate existing DM tools, and discuss the the need of developing new tools for:
+End-of-night Data Quality reports will be generated at NCSA and will require information from both the Prompt QC database and from the DM EDF.
 
-  - Collecting the data quality metrics from the *Single Frame Processing* pipeline;
-  - Storing the data quality metrics in the Prompt QC database;
-  - Publishing data quality metrics to the OCS;
-  - Monitoring data quality metrics in near-realtime dashboards;
-  - Accessing the Prompt QC and EFD databases;
-  - Implementing and running the Prompt Data Quality Report;
-  - Publishing the Prompt Data Quality Reports.
-
-Figure 1 presents an overview diagram of the Prompt QC components described in more detail in the next sections.
+Figure 1 presents an overview diagram of the Prompt QC components in the context of the interfaces described above.
 
 .. figure:: /_static/qc_components.png
-  :name: Prompt Quality Control components.
+  :name: Prompt Quality Control components and DMS-OCS interfaces
 
-In the Appendix A we list the data quality metrics and parameters used by the Prompt QC software.
-
+A detailed description of each component is given in the next sections.
 
 
 Collecting data quality metrics
 ===============================
 
-The Single Frame Processing Pipeline is responsible for reducing raw
+The Single Frame Processing task of the Prompt Processing pipeline is responsible for the reduction of raw
 or camera-corrected image data to calibrated exposures, the detection and measurement of
 Sources, the characterization of the point-spread-function (PSF), and the generation of an astrometric solution for an image.
 
@@ -116,43 +90,51 @@ Currently `lsst.verify` is being used to define and collect Key Performance Metr
 Storing data quality metrics
 ============================
 
-Metric values computed by pipeline tasks and collected by `lsst.verify` will be uploaded to the Prompt QC database through a RESTful API.
+Metric values computed by pipeline tasks and collected by `lsst.verify` will be uploaded to the Prompt QC database through a REST API.
 
 
 Publishing data quality metrics to the OCS
 ==========================================
 
-Data quality metrics will be published to the OCS through telemetry events using SAL.
-
-.. note::
-  While LSE-72 proposes SAL for the DMS-OCS interface, I don't know if that is possible between NCSA and the Summit.  See also LDM-148 about the "Telemetry Gateway" which proposes that RabbitMQ is used to transfer status and quality metrics to the gateway over the international network.
-
 Monitoring quality metrics in near-realtime dashboards
 ======================================================
-
-SQuaSH like dashboards can be used to visualize the data quality metrics enabling *remote observing* in near-realtime.
 
 Prompt Data Quality Reports
 ===========================
 
+The minimum content for the Prompt Data Quality report is specified in  **DMS-REQ-0097** (see section 1.3.14 in `LSE-61`_).
+
+**Specification:** *The DMS shall produce a Level 1 Data Quality Report that contains indicators of data quality that result from running the DMS pipelines, including at least: Photometric zero point vs. time for each utilized filter; Sky brightness vs. time for each utilized filter; seeing vs. time for each utilized filter; PSF parameters vs. time for each utilized filter; detection efficiency for point sources vs. mag for each utilized filter.*
+
+**Discussion:** *The seeing report is intended as a broad-brush measure of image quality. The PSF parameters provide more detail, as they include asymmetries and field location dependence.*
+
+Also from **DMS-REQ-0096** (see section 2.2.10 in `LSE-61`_) the Prompt Data Quality Report must be generated in less than 4h after the end of the nigthly Prompt Processing in order to evaluate *whether changes to hardware, software, or procedures are needed for the following night’s observing.*
+
+.. note::
+  Include DMS-REQ-0099 - Level 1 Performance Report Definition and DMS-REQ-0101 - Level 1 Calibration Report Definition here.
+
+
+As a reference, see the `Dark Energy Survey Night Summary`_ report.
+
+
 Acessing the QC and EFD databases
 ---------------------------------
-Correlating data quality metrics with observing conditions, with the state of the instrument, observing conditions, observatory parameters etc.
+
+
+The data quality metrics specified in **DMS-REQ-0097** will be derived from the *Single Frame processing* . However, a richer report also needs to correlate those metrics with the state of the instrument, observing conditions, observatory parameters obtained from the DM EFD. Also, we'll need to correlate that information with observer comments obtained from the observatory electronic log system.
+
 
 Implementation
 --------------
-The Data Quality Report will be implemented as jinja templates that will produce rst. It does not require much processing since the information is pre-computed and accessible from the Prompt QC REST API and the EFD.
+The Data Quality Report will be implemented as jinja templates that will produce rst. It does not require much processing since the information is pre-computed and accessible from the Prompt QC and DM EFD API's.
 
-Publication
------------
-The publication is done automatically using the LTD infrastructure to generate static pages from the rst documents generated by the jinja templates.
 
 Appendix A - Data quality metrics and parameters to store
 =========================================================
 
-Here we list the data quality metrics and parameters that we should store for each LSST Visit for the Prompt QC purpose.
+Here we list the data quality metrics and parameters that we should store for each LSST visit in the Prompt QC database.
 
-The data quality metrics measured by the Prompt Quality Control software for each individual CCD for each filter. These metrics are also aggregated at the Visit level.
+The data quality metrics measured by the Prompt Quality Control software for each individual CCD in visit. These metrics are also aggregated at the visit level.
 
   - PSF FWHM
   - PSF Ellipticiy
@@ -160,17 +142,23 @@ The data quality metrics measured by the Prompt Quality Control software for eac
   - Zeropoint
 
 
-The data quality parameters obtained from the EFD telemetry are:
+The data quality parameters obtained from the image header.
 
-  - Datetime (UTC): date and time in UTC when the Visit acquisition started.
-  - Visit ID: unique identifier of the Visit.
-  - RA, Dec: Telescope pointing.
+  - Visit Start Time (UTC): date and time in UTC when the visit acquisition started.
+  - Visit End Time (UTC): date and time in UTC when the visit acquisition ended.
+  - Visit Mid Time (UT): date and time in UTC at the midpoint of acquisition.
+  - Visit ID: unique identifier of the visit.
+  - RA, Dec: Telescope boresight pointing.
   - Airmass: Even though it can be calculated from RA, Dec it is useful to store Airmass since it determines the expected atmospheric contribution.
   - Filter: One of the five LSST observing filters, ugrizy.
-  - Focus: The donut estimate of focus error for the Visit.
+  - Focus: The donut estimate of focus error for the visit.
   - Guider DeltaRA, DeltaDec: Guider displacements for TCS correction
   - DIMM seeing: seeing determined by the observatory
-  - Wind Speed
+  - Wind Speed vector: anamometer data from site weather stations
+
+
+.. note::
+  Not clear if/when focus and guider information is available; should add to ICD if required
 
 
 
