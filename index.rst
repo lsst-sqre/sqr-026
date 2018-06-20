@@ -51,21 +51,21 @@ Data quality metrics will be published to the OCS/Scheduler throught the Telemet
 
 In particular, **OCS-DM-COM-ICD-0019** provides a minimum set	of	events	and	telemetry	to	be	published to the OCS.
 
-From **OCS-DM-COM-ICD-0021** the imediate data quality feedback to the OCS/Scheduler is important as it impacts the short term scheduling.
-
 While the detailed implementation of the Telemetry Gateway is not yet defined, we assume that data quality metrics, with a granularity level suitable for the OCS/Scheduler, will be published and also persited in the EFD (see **OCS-DM-COM-ICD-0020**).
+
+From **OCS-DM-COM-ICD-0021** the imediate data quality feedback to the OCS/Scheduler is important as it impacts the short term scheduling.
 
 .. note::
   We need a requirement that specifies the frequency of the data quality feedback to OCS/Scheduler, as it impacts the Prompt Processing pipeline design and the maximum time the Scheduler will wait for that information before fallback.
 
 .. note::
-  The current plan is that DMS *will not* publish to the OCS/Scheduler a pass/fail data quality flag to determine if a visit needs to be scheduled for reobservation.
+  The current plan is that DMS *will not* publish to the OCS/Scheduler a pass/fail data quality flag to determine if a visit needs to be scheduled for reobservation.  What about artifacts that affect image quality that cannot be predicted by the OCS/Scheduler? (e.g. focus/alignment or guider problems) how these visits get reobserved? 
 
-The Prompt Quality Control software will run at NCSA and will require its own database. The Prompt QC database will be connected to data quality dashboards for near-realtime moniritoring, available to the observers. The Prompt QC database will store the data quality metrics for each processed CCD in a visit for each visit. Additional parameters like observing conditions, observatory and telescode parameters will be obtained from the image header and stored in the Prompt QC database (see Appendix A). The image header will be the main mechanism for OCS-DMS communication in near-realtime.
+The Prompt Quality Control software will run at NCSA and for different reasons will require its own database. The Prompt QC DB will store the data quality metrics for each processed CCD in a visit for each visit. For additional parameters like observing conditions, observatory and telescope parameters will be obtained from the image header and stored in the Prompt QC DB (see Appendix A). The image header will be the main mechanism for OCS-DMS communication in near-realtime.
 
-The Prompt QC database should be exposed to the DAX services at the Data Access Centers as it contains useful information to science users.
+The Prompt QC DB should be exposed to the DAX services at the Data Access Centers as it contains useful information to science users.
 
-End-of-night Data Quality reports will be generated at NCSA and will require information from both the Prompt QC database and from the DM EDF.
+End-of-night Data Quality reports will be generated at NCSA and will require information from both the Prompt QC DB and from the DM EDF.
 
 Figure 1 presents an overview diagram of the Prompt QC components in the context of the interfaces described above.
 
@@ -88,8 +88,7 @@ Currently `lsst.verify` is being used to define and collect Key Performance Metr
 Storing data quality metrics
 ============================
 
-Metric values computed by pipeline tasks and collected by `lsst.verify` will be uploaded to the Prompt QC database through a REST API.
-
+Metric values computed by pipeline tasks and collected by `lsst.verify` will be uploaded to the Prompt QC DB through a REST API.
 
 Publishing data quality metrics to the OCS
 ==========================================
@@ -115,8 +114,8 @@ Also from **DMS-REQ-0096** (see section 2.2.10 in `LSE-61`_) the Prompt Data Qua
 As a reference, see the `Dark Energy Survey Night Summary`_ report.
 
 
-Acessing the QC and EFD databases
----------------------------------
+Acessing the QC and DM EFD databases
+------------------------------------
 
 The data quality metrics specified in **DMS-REQ-0097** will be derived from the *Single Frame processing* . However, a richer report also needs to correlate those metrics with the state of the instrument, observing conditions, observatory parameters obtained from the DM EFD. Also, we'll need to correlate that information with observer comments obtained from the observatory electronic log system.
 
@@ -129,7 +128,7 @@ The Data Quality Report will be implemented as jinja templates that will produce
 Appendix A - Data quality metrics and parameters to store
 =========================================================
 
-Here we list the data quality metrics and parameters that we should store for each LSST visit in the Prompt QC database.
+Here we list the data quality metrics and parameters that we should store for each LSST visit in the Prompt QC DB.
 
 The data quality metrics measured by the Prompt Quality Control software for each individual CCD in visit. These metrics are also aggregated at the visit level.
 
