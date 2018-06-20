@@ -74,7 +74,6 @@ Figure 1 presents an overview diagram of the Prompt QC components in the context
 
 A detailed description of each component is given in the next sections.
 
-
 Collecting data quality metrics
 ===============================
 
@@ -85,7 +84,6 @@ Sources, the characterization of the point-spread-function (PSF), and the genera
 Quality metrics are collected instrumenting these tasks with the LSST Verification framework or `lsst.verify` (see `SQR-019`_).
 
 Currently `lsst.verify` is being used to define and collect Key Performance Metrics derived from the LSST Science Requirements Document (`LPM-17`_).
-
 
 Storing data quality metrics
 ============================
@@ -102,7 +100,7 @@ Monitoring quality metrics in near-realtime dashboards
 Prompt Data Quality Reports
 ===========================
 
-The minimum content for the Prompt Data Quality report is specified in  **DMS-REQ-0097** (see section 1.3.14 in `LSE-61`_).
+The minimum content for the Prompt Data Quality report is specified in  **DMS-REQ-0097** in `LSE-61`_.
 
 **Specification:** *The DMS shall produce a Level 1 Data Quality Report that contains indicators of data quality that result from running the DMS pipelines, including at least: Photometric zero point vs. time for each utilized filter; Sky brightness vs. time for each utilized filter; seeing vs. time for each utilized filter; PSF parameters vs. time for each utilized filter; detection efficiency for point sources vs. mag for each utilized filter.*
 
@@ -119,7 +117,6 @@ As a reference, see the `Dark Energy Survey Night Summary`_ report.
 
 Acessing the QC and EFD databases
 ---------------------------------
-
 
 The data quality metrics specified in **DMS-REQ-0097** will be derived from the *Single Frame processing* . However, a richer report also needs to correlate those metrics with the state of the instrument, observing conditions, observatory parameters obtained from the DM EFD. Also, we'll need to correlate that information with observer comments obtained from the observatory electronic log system.
 
@@ -141,7 +138,6 @@ The data quality metrics measured by the Prompt Quality Control software for eac
   - Sky brightness
   - Zeropoint
 
-
 The data quality parameters obtained from the image header.
 
   - Visit Start Time (UTC): date and time in UTC when the visit acquisition started.
@@ -161,20 +157,22 @@ The data quality parameters obtained from the image header.
   Not clear if/when focus and guider information is available; should add to ICD if required
 
 
-
-
-
 References
 ==========
 
 .. target-notes::
 
-.. _`LDM-151`: https://docushare.lsstcorp.org/docushare/dsweb/Get/LDM-151
-.. _`LSE-72`: https://docushare.lsst.org/docushare/dsweb/Get/LSE-72
-.. _`LSE-70`: https://docushare.lsstcorp.org/docushare/dsweb/Get/LSE-70
-.. _`LDM-148`: https://docushare.lsstcorp.org/docushare/dsweb/Get/LDM-148
 .. _`LSE-61`: https://docushare.lsstcorp.org/docushare/dsweb/Get/LSE-61
+.. _`LCR-1203`: https://project.lsst.org/groups/ccb/node/2174
+.. _`LDM-151`: https://docushare.lsstcorp.org/docushare/dsweb/Get/LDM-151
 .. _`DMTN-050`: https://dmtn-050.lsst.io
 .. _`Dark Energy Survey Night Summary`: http://des-ops.fnal.gov:8080/nightsum
-.. _`SQR-019`: https://sqr-019.lsst... important::
+.. _`SQR-019`: https://sqr-019.lsst.io
 .. _`LPM-17`: https://docushare.lsstcorp.org/docushare/dsweb/Get/LPM-17
+.. _`SQuaSH`: https://squash.lsst.codes/
+.. _`Bokeh`: https://bokeh.pydata.org/en/latest/
+.. _`SQR-022`: https://sqr-022.lsst.codes/
+.. _`LSST Science Platform`: https://nb.lsst.io/
+.. _`LSST the Docs`: https://sqr-006.lsst.io/
+.. _`SQR-009`: https://sqr-009.lsst.io
+..
