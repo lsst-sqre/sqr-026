@@ -56,10 +56,10 @@ While the detailed implementation of the Telemetry Gateway is not yet defined, w
 From **OCS-DM-COM-ICD-0021** the imediate data quality feedback to the OCS/Scheduler is important as it impacts the short term scheduling.
 
 .. note::
-  We need a requirement that specifies the frequency of the data quality feedback to OCS/Scheduler, as it impacts the Prompt Processing pipeline design and the maximum time the Scheduler will wait for that information before fallback.
+  We need a requirement that specifies the frequency and granularity of the data quality feedback to OCS/Scheduler, as it impacts the Prompt Processing pipeline design and the maximum time the Scheduler will wait for that information before fallback.
 
 .. note::
-  The current plan is that DMS *will not* publish to the OCS/Scheduler a pass/fail data quality flag to determine if a visit needs to be scheduled for reobservation.  What about artifacts that affect image quality that cannot be predicted by the OCS/Scheduler? (e.g. focus/alignment or guider problems) how these visits get reobserved? 
+  The current plan is that DMS *will not* publish to the OCS/Scheduler a pass/fail data quality flag to determine if a visit needs to be scheduled for reobservation.  What about artifacts that affect image quality that cannot be predicted by the OCS/Scheduler? (e.g. focus/alignment or guider problems) how these visits get reobserved?
 
 The Prompt Quality Control software will run at NCSA and for different reasons will require its own database. The Prompt QC DB will store the data quality metrics for each processed CCD in a visit for each visit. For additional parameters like observing conditions, observatory and telescope parameters will be obtained from the image header and stored in the Prompt QC DB (see Appendix A). The image header will be the main mechanism for OCS-DMS communication in near-realtime.
 
@@ -164,6 +164,8 @@ References
 .. _`LSE-61`: https://docushare.lsstcorp.org/docushare/dsweb/Get/LSE-61
 .. _`LCR-1203`: https://project.lsst.org/groups/ccb/node/2174
 .. _`LDM-151`: https://docushare.lsstcorp.org/docushare/dsweb/Get/LDM-151
+.. _`LDM-148`: https://docushare.lsst.org/docushare/dsweb/Get/Version-52084/LDM-148.pdf
+.. _`LSE-72`: https://docushare.lsst.org/docushare/dsweb/Get/Version-51094/LSE-72%20ReportGen%20by%20ID%2004-19-18%20DRAFT.pdf
 .. _`DMTN-050`: https://dmtn-050.lsst.io
 .. _`Dark Energy Survey Night Summary`: http://des-ops.fnal.gov:8080/nightsum
 .. _`SQR-019`: https://sqr-019.lsst.io
