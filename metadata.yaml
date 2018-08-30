@@ -13,7 +13,7 @@ serial_number: '026'
 doc_id: 'SQR-026'
 
 # Title of the document, without the series/serial designation
-doc_title: 'Prompt Quality Control software'
+doc_title: 'DMS end-of-night report'
 
 # Author names, ordered as a list. Each author name should be formatted as 'First Last'
 authors:
