@@ -7,9 +7,9 @@
   .. image:: https://zenodo.org/badge/doi/10.5281/zenodo.#####.svg
      :target: http://dx.doi.org/10.5281/zenodo.#####
 
-###############################
-Prompt Quality Control Software
-###############################
+#################################################################
+Periodic report generation and publication via notebook templates
+#################################################################
 
 SQR-026
 =======
